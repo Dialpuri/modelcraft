@@ -126,9 +126,9 @@ class DataItem(gemmi.Mtz):
                 yield cls(mtz, combination)
 
 
-def write_mtz(
-    path: str, items: List[DataItem], labels: Optional[List[str]] = None
-) -> None:
+def combine_mtz(
+    items: List[DataItem], labels: Optional[List[str]] = None
+) -> gemmi.Mtz:
     labels = labels or [None] * len(items)
     column_labels = ["H", "K", "L"]
     column_types = ["H", "H", "H"]
@@ -152,7 +152,14 @@ def write_mtz(
     for label, type_ in zip(column_labels, column_types):
         mtz.add_column(label, type_)
     mtz.set_data(data.to_numpy())
+    return mtz
+
+def write_mtz(
+    path: str, items: List[DataItem], labels: Optional[List[str]] = None
+) -> None:
+    mtz = combine_mtz(items, labels)
     mtz.write_to_file(path)
+
 
 
 def convert_to_fsigf_and_phifom(fphi: DataItem) -> tuple:

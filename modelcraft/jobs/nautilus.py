@@ -5,7 +5,7 @@ from ..contents import AsuContents, PolymerType
 from ..job import Job
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, remove_non_library_atoms, write_mmcif
-
+from .nucleofind import NucleoFindResult
 
 @dataclasses.dataclass
 class NautilusResult:
@@ -27,8 +27,9 @@ class Nautilus(Job):
         freer: DataItem = None,
         structure: gemmi.Structure = None,
         cycles: int = 3,
+        nucleofind_result: NucleoFindResult = None
     ):
-        super().__init__("cnautilus")
+        super().__init__("pnautilus")
         self.contents = contents
         self.fsigf = fsigf
         self.phases = phases
@@ -36,6 +37,7 @@ class Nautilus(Job):
         self.freer = freer
         self.structure = structure
         self.cycles = cycles
+        self.nucleofind_result = nucleofind_result
 
     def _setup(self) -> None:
         types = [PolymerType.RNA, PolymerType.DNA]
@@ -61,6 +63,8 @@ class Nautilus(Job):
         self._args += ["-pdbout", "xyzout.cif"]
         self._args += ["-cif"]
         self._args += ["-xmlout", "xmlout.xml"]
+        self.nucleofind_result.predicted_map.write_ccp4_map(self._path("predicted_phosphate.map"))
+        self._args += ["-predicted-phos-map", "predicted_phosphate.map"]
 
     def _result(self) -> NautilusResult:
         self._check_files_exist("xmlout.xml", "xyzout.cif")
